@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import {Routes, Route, Link, useMatch, Navigate, useNavigate} from 'react-router-dom'
+import { useField } from './hooks'
 const Menu = ({anecdotes, notification, setNotification, addNew}) => {
   const padding = {
     paddingRight: 5
@@ -73,22 +74,27 @@ const Footer = () => (
 )
 
 const CreateNew = (props) => {
-  const [content, setContent] = useState('')
-  const [author, setAuthor] = useState('')
-  const [info, setInfo] = useState('')
-
+  const {inputProps:contentProps, onReset:contentReset} = useField('content')
+  const {inputProps:authorProps, onReset:authorReset} = useField('author')
+  const {inputProps:infoProps, onReset:infoReset} = useField('info')
   const navigate = useNavigate()
   const handleSubmit = (e) => {
     e.preventDefault()
-    props.addNew({
-      content,
-      author,
-      info,
-      votes: 0
-    })
-    props.setNotification(`a new anecdote ${content} created!`)
-    navigate('/')
-    setTimeout(()=>props.setNotification(''), 5000)
+    if(e.nativeEvent.submitter.name==='create'){
+      props.addNew({
+        content: contentProps.value,
+        author: authorProps.value,
+        info: infoProps.value,
+        votes: 0
+      })
+      props.setNotification(`a new anecdote ${contentProps.value} created!`)
+      navigate('/')
+      setTimeout(()=>props.setNotification(''), 5000)
+    }else{
+      contentReset()
+      authorReset()
+      infoReset()
+    }
   }
 
   return (
@@ -97,17 +103,18 @@ const CreateNew = (props) => {
       <form onSubmit={handleSubmit}>
         <div>
           content
-          <input name='content' value={content} onChange={(e) => setContent(e.target.value)} />
+          <input {...contentProps} />
         </div>
         <div>
           author
-          <input name='author' value={author} onChange={(e) => setAuthor(e.target.value)} />
+          <input {...authorProps} />
         </div>
         <div>
           url for more info
-          <input name='info' value={info} onChange={(e)=> setInfo(e.target.value)} />
+          <input {...infoProps} />
         </div>
-        <button>create</button>
+        <button type="submit" name='create'>create</button>
+        <button type="submit" name='reset'>reset</button>
       </form>
     </div>
   )
